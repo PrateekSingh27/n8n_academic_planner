@@ -62,7 +62,7 @@ This project is an **automated academic planning tool** built with **n8n**, desi
 
 ## 🛠 Notes
 
-- Email ID fallback is set to `krishnabhatia09@gmail.com` if not extracted automatically.
+- Email ID fallback is set to `prateek6394121233singh@gmail.com` if not extracted automatically.
 - Semester duration is July 15 – Nov 15 (can be edited in Code node).
 - Works well with hosted n8n or self-hosted instance.
 - Highly adaptable for other educational use cases.
