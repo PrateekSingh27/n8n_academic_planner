@@ -1,0 +1,389 @@
+{
+  "name": "AcademicStackPlanner",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Academic Career Planner",
+        "formDescription": "Build a semester-specific roadmap for your chosen tech stack",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Enter is your name?",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Enter is your discipline of study?",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "B.Tech / B.S"
+                  },
+                  {
+                    "option": "BCA"
+                  }
+                ]
+              },
+              "multiselect": true
+            },
+            {
+              "fieldLabel": "Enter year are you in?",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "1"
+                  },
+                  {
+                    "option": "2"
+                  },
+                  {
+                    "option": "3"
+                  },
+                  {
+                    "option": "4 (Not applicable for BCA students)"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Which stack would you like the roadmap to be on?",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "AI/ML"
+                  },
+                  {
+                    "option": "Full Stack Development"
+                  },
+                  {
+                    "option": "Cybersecurity"
+                  },
+                  {
+                    "option": "Data Science"
+                  },
+                  {
+                    "option": "UI/UX"
+                  },
+                  {
+                    "option": "DevOps"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Enter is your current level of understanding?",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Beginner"
+                  },
+                  {
+                    "option": "Intermediate"
+                  },
+                  {
+                    "option": "Advanced"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Briefly describe your current skills (only keywords) , if any prior exxperience?"
+            },
+            {
+              "fieldLabel": "Enter is your email id?"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -420,
+        20
+      ],
+      "id": "cea05592-bd87-42b6-8266-3e0cc70dbf2a",
+      "name": "On form submission",
+      "webhookId": "7bafffe2-e109-4213-8b78-076f83301fb5"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "You are an AI assistant expert in creating academic and career roadmaps. Based on the user's input about their current year in B.Tech (1 to 4), generate a detailed roadmap covering relevant semester (Just that semester meaning roadmap of 6 months), skills, projects, and internship prep and give proper breakdown of each month for the whole semester.\n\nOutput the entire roadmap as clean, semantic HTML with headings, lists, and sections and also mention the mail in the output.\n\nDo NOT include any explanations or extra text\u2014ONLY return the complete HTML snippet.\n\nMake sure the HTML uses proper tags like <h2>, <ul>, <li>, <p> for readability and formatting.\n\nThe HTML should be self-contained and suitable to embed in emails or webpages.\n\n\n\u26a0\ufe0f Do not use Markdown formatting like *, **, or #.\nJust use plain section headers (e.g., \u201cSemester 5\u201d) and dash - bullet points.\nAvoid using any formatting characters.\nThe roadmap should be limited to that very semester only, don't generate any other information.",
+        "options": {
+          "systemMessage": "=You are an academic roadmap planner.  \nStudent's name: {{ $json['What is your name?'] }}\nDiscipline:{{ $json['What is your discipline of study?'] }}\nYear: {{ $json['What year are you in?'] }}\nUnderstanding: {{ $json['What is your current level of understanding?'] }}\nEmail:{{ $json['What is your email id?'] }}\nBased on this info, create a personalized study plan.\n\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        20
+      ],
+      "id": "9092716f-16d5-4436-8b9a-130252c1d91a",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-pro",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -112,
+        240
+      ],
+      "id": "91a45ccd-71a6-405e-aedf-bdf8958bf4c2",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "tGSYRDvf79wsShIr",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email }}",
+        "subject": "=Student Roadmap Planner",
+        "message": "={{ $json.html }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        400,
+        0
+      ],
+      "id": "b5f440c5-2d97-4aca-9c62-46bd4a2eeb6a",
+      "name": "Gmail",
+      "webhookId": "7943635a-37f1-4103-b47e-41bd8fe84037",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "TGqrXZT7amcPCshV",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const html = $input.first().json.output; // Replace if needed\n\nconst plain = html\n  .replace(/<[^>]+>/g, '')  \n  .replace(/\u2022/g, '-')        \n  .replace(/\\n\\s*\\n/g, '\\n');\n\nconst lines = plain\n  .split('\\n')\n  .map(line => line.trim())\n  .filter(line => line.startsWith('-') && line.length > 5);\n\nconst now = new Date();\n\nconst semesterStart = new Date(now.getFullYear(), 6, 15); \nconst semesterEnd = new Date(now.getFullYear(), 10, 15);  \n\nconst totalSemesterDays = (semesterEnd - semesterStart) / (1000 * 60 * 60 * 24);\nconst taskCount = lines.length;\nconst intervalDays = totalSemesterDays / taskCount;\n\nconst output = [];\n\nfor (let i = 0; i < taskCount; i++) {\n  const task = lines[i].replace(/^- /, '');\n\n  const start = new Date(semesterStart);\n  start.setDate(start.getDate() + Math.floor(i * intervalDays));\n  start.setHours(0, 0, 0, 0);  \n  let end;\n  if (i < taskCount - 1) {\n    end = new Date(semesterStart);\n    end.setDate(end.getDate() + Math.floor((i + 1) * intervalDays) - 1);\n    end.setHours(23, 59, 59, 999);\n  } else {\n    end = new Date(semesterEnd);\n    end.setHours(23, 59, 59, 999);\n  }\n\n  output.push({\n    json: {\n      summary: task,\n      description: 'Task spanning multiple days',\n      start: start.toISOString(),\n      end: end.toISOString()\n    }\n  });\n}\n\nreturn output;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        180,
+        220
+      ],
+      "id": "7ba874c6-3495-4de4-820c-c74fb6a5be15",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "krishnabhatia09@gmail.com",
+          "mode": "list",
+          "cachedResultName": "krishnabhatia09@gmail.com"
+        },
+        "start": "={{ $json.start }}",
+        "end": "={{ $json.end }}",
+        "additionalFields": {
+          "description": "={{ $json[\"description\"] }}",
+          "summary": "={{ $json[\"summary\"] }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        400,
+        220
+      ],
+      "id": "951516c6-2bc4-4eb8-8d35-05c9a89d8301",
+      "name": "Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "53uIineasTmqgKaS",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.output; // Gemini's HTML output\n\nconst emailMatch = raw.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-z]{2,}/);\nconst extractedEmail = emailMatch ? emailMatch[0] : \"krishnabhatia09@gmail.com\"; \nconst htmlFormatted = `<div style=\"font-family:Arial,sans-serif;line-height:1.6;font-size:14px\">${raw}</div>`;\nreturn {\n  json: {\n    email: extractedEmail,\n    html: htmlFormatted,\n    subject: \"Your Personalized B.Tech Roadmap\"\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        180,
+        0
+      ],
+      "id": "97644244-ac3f-4a26-ace6-75a0a8374378",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "content": "The Task Breakdown node deals with segmenting the output provided by Gemini API into specified fields such as start date, end date etc. for smooth creation of Google Calendar Events. ",
+        "height": 120,
+        "width": 280,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        100,
+        380
+      ],
+      "id": "cb96ff13-23f2-408b-8a55-ae25b0cf312b",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "The Code function node extracts the email ID from the Gemini API output while also forwarding the remaining content for use in the email body. You can bypass this node by simply providing an email to send the contents to in the gmail node.",
+        "width": 260,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        100,
+        -220
+      ],
+      "id": "40d92d46-1de9-4d8d-949f-8d3cc70d6920",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 440,
+        "width": 540,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -452,
+        -60
+      ],
+      "id": "d56e670f-6e6b-4ed4-aafd-58fcd837ea5a",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 180,
+        "width": 480,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        100,
+        -40
+      ],
+      "typeVersion": 1,
+      "id": "fc21212e-ee87-479f-8a53-ed11d0fbb56c",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "width": 480,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        100,
+        200
+      ],
+      "typeVersion": 1,
+      "id": "318551a7-7b55-4849-840a-667b8666f7b7",
+      "name": "Sticky Note4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail": {
+      "main": [
+        []
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Google Calendar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "12ec194b-8691-43e0-a6cb-ebc5a2124756",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6ff833731bebf924f54230e0d40122d71747604b4891cbc7677374613560b3c3"
+  },
+  "id": "idyGGCTbJeXBGXmv",
+  "tags": []
+}
